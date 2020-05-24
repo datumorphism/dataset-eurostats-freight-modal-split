@@ -1,53 +1,32 @@
-name: EU Motorways Network Length
-description: The lengths of motorways in EU by NUTS 2
+name: Eurostats Freight Modal Split
+description: The share of each transport modes measured by tonne-kilometers
 contributors:
 - name: 'LM'
   github: 'emptymalei'
 data:
-- name: motorway networks length in unit of km in CSV format
+- name: freight transport mode share measured by tonne-kilometers
   description: ''
-  path: dataset/motorway_network_unit_km.csv
+  path: dataset/eurostats_freight_modal_split.csv
   format: csv
-  size: 91K
-  updated_at: '2020-04-14'
+  size: 73K
+  updated_at: '2020-04-01'
   fields:
-  - name: transport_infrastructure
-    description: 'The corresponding transport infrastructure'
+  - name: transport_mode
+    description: 'Name of the transport mode'
   - name: country
-    description: 'Country Alpha 2 Code'
-  - name: nuts_2
-    description: 'NUTS 2 Code of the region'
+    description: 'Alpha 2 code of the country'
   - name: year
-    description: 'year of the measurement'
+    description: 'Year of the data'
   - name: value
-    description: 'length of the motorway network'
-  - name: unit
-    description: 'km, unit of length'
-- name: motorway network length per square km in EU in CSV format
-  description: ''
-  path: dataset/motorway_network_unit_km_per_thousand_square_km.csv
-  format: csv
-  size: 105K
-  updated_at: '2020-04-14'
-  fields:
-  - name: transport_infrastructure
-    description: 'The corresponding transport infrastructure'
-  - name: country
-    description: 'Country Alpha 2 Code'
-  - name: nuts_2
-    description: 'NUTS 2 Code of the region'
-  - name: year
-    description: 'year of the measurement'
-  - name: value
-    description: 'length per area of the motorway network'
-  - name: unit
-    description: 'km per thousand km, unit of length per area'
+    description: 'The sum of each mode for each year for each country should be 1'
+  - name: is_estimated
+    description: 'If the value is estimated'
+  - name: not_applicable
+    description: 'If the value is applicable'
 references:
-- name: 'Raw Data: Motorways network by NUTS 2 regions (tgs00114)	@ Main Tables @ Eurostats'
+- name: 'Raw Data: Modal split of freight transport (t2020_rk320)	@ Main Tables @ Eurostats'
   link: 'https://ec.europa.eu/eurostat/web/transport/data/main-tables'
-- name: 'Motorways network by NUTS 2 regions (DataBrowser)'
-  link: 'https://ec.europa.eu/eurostat/databrowser/view/tgs00114/default/table?lang=en'
-- name: 'Motorways network by NUTS 2 regions (Tables, Graphs, Maps)'
-  link: 'https://ec.europa.eu/eurostat/tgm/table.do?tab=table&init=1&language=en&pcode=tgs00114&plugin=1'
-- name: 'Metadata Illustration: Regional transport statistics (reg_tran)'
-  link: 'https://ec.europa.eu/eurostat/cache/metadata/en/reg_tran_esms.htm'
+- name: 'Modal split of freight transport (Data Browser)'
+  link: 'https://ec.europa.eu/eurostat/databrowser/view/t2020_rk320/default/table?lang=en'
+- name: 'Modal split of freight transport	Code: t2020_rk320 (% in total inland freight tonne-km)'
+  link: 'https://ec.europa.eu/eurostat/tgm/refreshTableAction.do?tab=table&plugin=1&pcode=t2020_rk320&language=en'

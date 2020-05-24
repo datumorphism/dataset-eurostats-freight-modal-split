@@ -60,64 +60,59 @@ def parse_data(data_local, parsed_data_local):
     logger.info(f"{df.describe()}\n{df.info()}")
 
     # Split the first column
-    df["nuts_2"] = df["tra_infr,unit,geo\\time"].apply(lambda x: x.split(",")[-1])
-    df["country"] = df["nuts_2"].apply(lambda x: x[:2])
-    df["unit"] = df["tra_infr,unit,geo\\time"].apply(lambda x: x.split(",")[-2])
-    # df["transport_infrastructure"] = df["tra_infr,unit,geo\\time"].apply(lambda x: x.split(",")[0])
-    df["transport_infrastructure"] = "motorways"
+    df["country"] = df["unit,tra_mode,geo\\time"].apply(lambda x: x.split(",")[-1])
+    df["transport_mode"] = df["unit,tra_mode,geo\\time"].apply(lambda x: x.split(",")[-2])
+    # df["unit"] = df["unit,tra_mode,geo\\time"].apply(lambda x: x.split(",")[0])
 
-    cols = [i for i in df.columns.tolist() if i != "tra_infr,unit,geo\\time"]
-    info_cols = ["transport_infrastructure", "country", "nuts_2", "unit"]
+    cols = [i for i in df.columns.tolist() if i != "unit,tra_mode,geo\\time"]
+    info_cols = ["transport_mode", "country"]
     year_cols = [i for i in cols if i not in info_cols]
 
     # Melt the dataframe for easier pandas manipulations
-    df_melted = pd.melt(df, id_vars=info_cols, value_vars=year_cols, var_name="year", value_name="value")
+    df_melted = pd.melt(
+        df, id_vars=info_cols, value_vars=year_cols, var_name="year", value_name="value"
+    )
 
     # Sort the column order for a more readable output
-    order_cols = [
-        'transport_infrastructure', 'country', 'nuts_2', 'year', 'value', 'unit'
-    ]
+    order_cols = ['transport_mode', 'country', 'year', 'value']
     df_melted = df_melted[order_cols]
 
-    # Remove : in the values
-    df_melted.value = df_melted.value.apply(lambda x: x.strip() if isinstance(x, str) else x)
-    df_melted.replace({":": None, ": ": None}, inplace=True)
+    # Transport mode full name
+    MODES = {
+        "IWW": "inland_waterways",
+        "RAIL": "rail",
+        "RAIL_IWW_AVD": "rail_inland_waterways_sum_of_available",
+        "ROAD": "road"
+    }
+
+    df_melted.transport_mode.replace(MODES, inplace=True)
+
+    # Clean up values
     df_melted.year = df_melted.year.apply(lambda x: x.strip())
 
-    # Attach the name of the column
-    # df_nuts_2 = get_nuts_codes('nuts_2')
-    # df_res = pd.merge(df_melted, df_nuts_2, how="left", left_on="nuts_2", right_on="nuts_code")
-    # df_res.drop("nuts_code", axis=1, inplace=True)
-    # df_res.rename(columns={
-    #     "nuts_2_y": "nuts_name",
-    #     "nuts_2_x": "nuts_code"
-    # }, inplace=True)
+    df_melted.value = df_melted.value.apply(lambda x: x.strip() if isinstance(x, str) else x)
+    df_melted["is_estimated"] = df_melted.value.apply(lambda x: True if "e" in x else False)
+    df_melted["not_applicable"] = df_melted.value.apply(lambda x: True if "z" in x else False)
 
-    # Split into two tables
+    df_melted.value = df_melted.value.apply(lambda x: x.split(" ")[0].strip() if isinstance(x, str) else x)
+    df_melted.value.replace({":": None, ": ": None}, inplace=True)
+    df_melted.value = df_melted.value.apply(lambda x: f"{float(x)/100:0.3f}" if x else None)
 
-    df_unit_km = df_melted.loc[df_melted.unit == "KM"]
-    df_unit_km_per_thousand_square_km = df_melted.loc[df_melted.unit == "KM_TKM2"]
-
-    # export
-    df_unit_km.to_csv(
-        parsed_data_local["unit_km"], index=False
+    # Export
+    df_melted.to_csv(
+        parsed_data_local, index=False
     )
-    df_unit_km_per_thousand_square_km.to_csv(
-        parsed_data_local["unit_km_per_thousand_square_km"], index=False
-    )
+
 
 
 
 if __name__ == "__main__":
 
-    DATA_REMOTE = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&file=data%2Ftgs00114.tsv.gz"
+    DATA_REMOTE = "https://ec.europa.eu/eurostat/estat-navtree-portlet-prod/BulkDownloadListing?sort=1&downfile=data%2Ft2020_rk320.tsv.gz"
     CACHE_FOLDER = "/tmp"
 
-    DATA_LOCAL = "/tmp/motorway-network.tsv"
-    PARSED_DATA_LOCAL = {
-        "unit_km": "dataset/motorway_network_unit_km.csv",
-        "unit_km_per_thousand_square_km": "dataset/motorway_network_unit_km_per_thousand_square_km.csv"
-    }
+    DATA_LOCAL = "/tmp/freight_modal_split.tsv"
+    PARSED_DATA_LOCAL = "dataset/eurostats_freight_modal_split.csv"
 
     download(DATA_REMOTE, CACHE_FOLDER, DATA_LOCAL)
 
